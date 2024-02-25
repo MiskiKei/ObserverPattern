@@ -1,11 +1,8 @@
-
-// Java program to demonstrate working of
-// onserver pattern
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Random;
 
-// Implemented by Cricket data to communicate
-// with observers
+// Implemented by scoring class to communicate with observers
 interface Subject {
 	public void registerObserver(Observer o);
 
@@ -14,72 +11,54 @@ interface Subject {
 	public void notifyObservers();
 }
 
-class CricketData implements Subject {
-	int runs;
-	int wickets;
-	float overs;
-	ArrayList<Observer> observerList;
+class Scoring implements Subject {
+    private int teamAScore;
+    private int teamBScore;
+    private ArrayList<Observer> observerList;
 
-	public CricketData() {
-		observerList = new ArrayList<Observer>();
-	}
+    public Scoring() {
+        observerList = new ArrayList<>();
+    }
 
-	@Override
-	public void registerObserver(Observer o) {
-		observerList.add(o);
-	}
+    @Override
+    public void registerObserver(Observer o) {
+        observerList.add(o);
+    }
 
-	@Override
-	public void unregisterObserver(Observer o) {
-		observerList.remove(observerList.indexOf(o));
-	}
+    @Override
+    public void unregisterObserver(Observer o) {
+        observerList.remove(o);
+    }
 
-	@Override
-	public void notifyObservers() {
-		for (Iterator<Observer> it = observerList.iterator(); it.hasNext();) {
-			Observer o = it.next();
-			o.update(runs, wickets, overs);
-		}
-	}
+    @Override
+    public void notifyObservers() {
+        for (Observer observer : observerList) {
+            observer.update(teamAScore, teamBScore);
+        }
+    }
 
-	// get latest runs from stadium
-	private int getLatestRuns() {
-		// return 90 for simplicity
-		return 90;
-	}
+    public void simulateQuarter() {
+        // Simulate a quarter with random scores
+        Random random = new Random();
+        teamAScore += random.nextInt(30) + 10;
+        teamBScore += random.nextInt(30) + 10;
+        notifyObservers();
+    }
 
-	// get latest wickets from stadium
-	private int getLatestWickets() {
-		// return 2 for simplicity
-		return 2;
-	}
+    public int getTeamAScore() {
+        return teamAScore;
+    }
 
-	// get latest overs from stadium
-	private float getLatestOvers() {
-		// return 90 for simplicity
-		return (float) 10.2;
-	}
-
-	// This method is used update displays
-	// when data changes
-	public void dataChanged() {
-		// get latest data
-		runs = getLatestRuns();
-		wickets = getLatestWickets();
-		overs = getLatestOvers();
-
-		notifyObservers();
-	}
+    public int getTeamBScore() {
+        return teamBScore;
+    }
 }
 
-// This interface is implemented by all those
-// classes that are to be updated whenever there
-// is an update from CricketData
 interface Observer {
-	public void update(int runs, int wickets, float overs);
+    void update(int teamAScore, int teamBScore);
 }
 
-class AverageScoreDisplay implements Observer {
+/*class AverageScoreDisplay implements Observer {
 	private float runRate;
 	private int predictedScore;
 
@@ -136,5 +115,5 @@ class Main {
 		// now only currentScoreDisplay gets the
 		// notification
 		cricketData.dataChanged();
-	}
-}
+	}*/
+
