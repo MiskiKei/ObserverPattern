@@ -1,5 +1,7 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -13,67 +15,96 @@ interface Subject {
 }
 
 class Scoring implements Subject {
-	private int teamAScore;
-	private int teamBScore;
-	private int currentQuarter;
-	private ArrayList<Observer> observerList;
+    private int teamAScore;
+    private int teamBScore;
+    private int currentQuarter;
+    private int currentGame;
+    private boolean gameOngoing;
+    private ArrayList<Observer> observerList;
+    private static Map<Integer, String> finishedGames = new HashMap<>();
 
-	public Scoring() {
-		observerList = new ArrayList<>();
-		currentQuarter = 1;
-	}
+    public Scoring() {
+        observerList = new ArrayList<>();
+        currentQuarter = 1;
+        currentGame = 1;
+    }
 
-	@Override
-	public void registerObserver(Observer o) {
-		observerList.add(o);
-	}
+    @Override
+    public void registerObserver(Observer o) {
+        observerList.add(o);
+    }
 
-	@Override
-	public void unregisterObserver(Observer o) {
-		observerList.remove(o);
-	}
+    @Override
+    public void unregisterObserver(Observer o) {
+        observerList.remove(o);
+    }
 
-	@Override
-	public void notifyObservers() {
-		for (Observer observer : observerList) {
-			observer.update(teamAScore, teamBScore);
-		}
-	}
+    @Override
+    public void notifyObservers() {
+        for (Observer observer : observerList) {
+            observer.update(teamAScore, teamBScore);
+        }
+    }
+    
+    public void simulateGame() {
+        if (!gameOngoing) {
+            startNewGame();
+        }
 
-	public void simulateGame() {
-		System.out.println();
-		simulateQuarter();
-		currentQuarter++;
+        if (currentQuarter <= 4) {
+            simulateQuarter();
+            if (currentQuarter == 4) {
+                // After the game ends
+                String gameResult = "Match Results for Game " + currentGame + ": TeamA " + teamAScore + " - TeamB " + teamBScore;
+                finishedGames.put(currentGame, gameResult);
+                currentGame++;
 
-		if (currentQuarter > 4) {
-			System.out.println();
-			System.out.println("The game has ended.");
-		}
-	}
+                System.out.println("The game has ended.");
+                gameOngoing = false; // Set game status to not ongoing
+            } else {
+                currentQuarter++;
+            }
+        } else {
+            System.out.println("The game has already ended. Start a new game.");
+        }
+    }
 
-	private void simulateQuarter() {
-		if (currentQuarter <= 4) {
-			// Simulate a quarter with random scores
-			Random random = new Random();
-			teamAScore += random.nextInt(30) + 10;
-			teamBScore += random.nextInt(30) + 10;
-			notifyObservers();
-			printCurrentScore();
-		}
-	}
+    private void startNewGame() {
+        currentQuarter = 1;
+        teamAScore = 0;
+        teamBScore = 0;
+        gameOngoing = true; // Set game status to ongoing
+}
+    
+    public boolean isGameOngoing() {
+        return gameOngoing;
+    }
 
-	private void printCurrentScore() {
-		System.out.println(
-				"Current Score after Quarter " + currentQuarter + ": TeamA " + teamAScore + " - TeamB " + teamBScore);
-	}
+    private void simulateQuarter() {
+            // Simulate a quarter with random scores
+            Random random = new Random();
+            teamAScore += random.nextInt(30) + 10;
+            teamBScore += random.nextInt(30) + 10;
+            notifyObservers();
+            printCurrentScore();
+    }
 
-	public int getTeamAScore() {
-		return teamAScore;
-	}
+    private void printCurrentScore() {
+        System.out.println(
+                "Current Score after Quarter " + currentQuarter + ": TeamA " + teamAScore + " - TeamB " + teamBScore);
+    }
 
-	public int getTeamBScore() {
-		return teamBScore;
-	}
+    public int getTeamAScore() {
+        return teamAScore;
+    }
+
+    public int getTeamBScore() {
+        return teamBScore;
+    }
+
+    public static Map<Integer, String> getFinishedGames() {
+        return finishedGames;
+    }
 }
 
 interface Observer {
@@ -81,55 +112,38 @@ interface Observer {
 }
 
 class PredictionObserver implements Observer {
-	private int correctPredictions;
-	private List<Integer> pointErrorRates;
-	private int currentPrediction;
+    private int correctPredictions;
+    private int currentPrediction;
+    private List<Integer> pointErrorRates;
 
-	public PredictionObserver() {
-		correctPredictions = 0;
-		pointErrorRates = new ArrayList<>();
-		currentPrediction = 0;
-	}
+    public PredictionObserver() {
+        correctPredictions = 0;
+        pointErrorRates = new ArrayList<>();
+        currentPrediction = 0;
+    }
 
-	@Override
-	public void update(int teamAScore, int teamBScore) {
-		int predictedFinalScore = teamAScore + teamBScore + 20;
-		int actualFinalScore = teamAScore + teamBScore;
+    @Override
+    public void update(int teamAScore, int teamBScore) {
+        int predictedFinalScore = teamAScore + teamBScore + 20;
+        int actualFinalScore = teamAScore + teamBScore;
 
-		currentPrediction = predictedFinalScore; // Current prediction
+        currentPrediction = predictedFinalScore; // Current prediction
 
-		if (predictedFinalScore == actualFinalScore) {
-			correctPredictions++;
-		}
+        if (predictedFinalScore == actualFinalScore) {
+            correctPredictions++;
+        }
+    }
 
-		int pointError = Math.abs(predictedFinalScore - actualFinalScore); // Points off from predicted to actual
-		pointErrorRates.add(pointError);
-	}
 
-	public int getCurrentPrediction() {
-		return currentPrediction;
-	}
+    public int getCurrentPrediction() {
+        return currentPrediction;
+    }
 
-	public void displayPredictionStats() {
-		System.out.println("Prediction Stats:");
-		System.out.println("Current Prediction: " + currentPrediction);
-		System.out.println("Correct Final Results: " + correctPredictions);
-
-		if (!pointErrorRates.isEmpty()) {
-			double averagePointErrorRate = calculateAverage(pointErrorRates);
-			System.out.println("Average Point Error Rate: " + averagePointErrorRate);
-		} else {
-			System.out.println("No predictions made yet.");
-		}
-	}
-
-	private double calculateAverage(List<Integer> points) {
-		int sum = 0;
-		for (int value : points) {
-			sum += value;
-		}
-		return (double) sum / points.size();
-	}
+    public void displayPredictionStats() {
+        System.out.println("Prediction Stats:");
+        System.out.println("Current Prediction: " + currentPrediction);
+        System.out.println("Correct Final Results Predictions: " + correctPredictions);
+    }
 }
 
 class GameStatsObserver implements Observer {
@@ -196,20 +210,54 @@ class Main {
 			System.out.print("Enter your choice: ");
 			int choice = scanner.nextInt();
 
-			switch (choice) {
-			case 1:
-				scoring = new Scoring();
-				scoring.registerObserver(predictionObserver);
-				scoring.registerObserver(gameStatsObserver);
-				scoring.registerObserver(newsObserver);
-				break;
+		    switch (choice) {
+	        case 1:
+	            if (scoring != null && scoring.isGameOngoing()) {
+	                System.out.println("A game is already ongoing. Cannot start a new game.");
+	            } else {
+	                scoring = new Scoring();
+	                scoring.registerObserver(predictionObserver);
+	                scoring.registerObserver(gameStatsObserver);
+	                scoring.registerObserver(newsObserver);
+	            }
+	            break;
 			case 2:
 				if (scoring != null) {
+					System.out.println();
 					scoring.simulateGame(); 
 				} else {
+					System.out.println();
 					System.out.println("Start a new game first.");
 				}
 				break;
+			case 3:
+			    if (scoring != null) {
+			    	System.out.println();
+			    	System.out.println("Current Score: TeamA " + scoring.getTeamAScore() + " - TeamB " + scoring.getTeamBScore());
+			    } else {
+			    	System.out.println();
+			        System.out.println("No game in progress. Start a new game first.");
+			    }
+			    break;
+			case 4:
+				if (scoring != null) {
+					System.out.println();
+					System.out.println("Current Prediction: " + predictionObserver.getCurrentPrediction());
+				} else {
+					System.out.println();
+					System.out.println("No game in progress. Start a new game first.");
+				}
+				break;
+			case 5:
+				if (scoring != null) {
+					System.out.println();
+					predictionObserver.displayPredictionStats();
+				} else {
+					System.out.println();
+					System.out.println("No game in progress. Start a new game first.");
+				}
+				break;
+
 
 			}
 		}
