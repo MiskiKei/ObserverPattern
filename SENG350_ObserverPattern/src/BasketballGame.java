@@ -93,6 +93,27 @@ class GameStatsObserver implements Observer {
     }
 }
 
+class NewsObserver implements Observer {
+    private String newsTitle;
+
+    @Override
+    public void update(int teamAScore, int teamBScore) {
+        if (teamAScore > teamBScore) {
+            newsTitle = "TeamA beat TeamB by " + (teamAScore - teamBScore) + " points";
+        } else if (teamAScore < teamBScore) {
+            newsTitle = "TeamB beat TeamA by " + (teamBScore - teamAScore) + " points";
+        } else {
+            newsTitle = "The game between TeamA and TeamB ended in a tie";
+        }
+    }
+
+    public void displayNews() {
+        System.out.println(newsTitle);
+    }
+}
+
+
+
 
 /*class AverageScoreDisplay implements Observer {
 	private float runRate;
