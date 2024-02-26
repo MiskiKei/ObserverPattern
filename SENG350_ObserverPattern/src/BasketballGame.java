@@ -1,6 +1,8 @@
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
+import java.util.Scanner;
 
 // Implemented by scoring class to communicate with observers
 interface Subject {
@@ -59,15 +61,54 @@ interface Observer {
 }
 
 class PredictionObserver implements Observer {
-    private int predictedFinalScore;
+    private int correctPredictions;
+    private List<Integer> pointErrorRates;
+    private int currentPrediction;
+
+    public PredictionObserver() {
+        correctPredictions = 0;
+        pointErrorRates = new ArrayList<>();
+        currentPrediction = 0; 
+    }
 
     @Override
     public void update(int teamAScore, int teamBScore) {
-        predictedFinalScore = teamAScore + teamBScore + 20; //Cumulative Scores + 20 
+        int predictedFinalScore = teamAScore + teamBScore + 20;
+        int actualFinalScore = teamAScore + teamBScore;
+
+        currentPrediction = predictedFinalScore; //Current prediction
+
+        if (predictedFinalScore == actualFinalScore) {
+            correctPredictions++;
+        }
+
+        int pointError = Math.abs(predictedFinalScore - actualFinalScore); //Points off from predicted to actual
+        pointErrorRates.add(pointError);
     }
 
-    public void displayPrediction() {
-        System.out.println("Predicted Final Score: " + predictedFinalScore);
+    public int getCurrentPrediction() {
+        return currentPrediction;
+    }
+
+    public void displayPredictionStats() {
+        System.out.println("Prediction Stats:");
+        System.out.println("Current Prediction: " + currentPrediction);
+        System.out.println("Correct Final Results: " + correctPredictions);
+
+        if (!pointErrorRates.isEmpty()) {
+            double averagePointErrorRate = calculateAverage(pointErrorRates);
+            System.out.println("Average Point Error Rate: " + averagePointErrorRate);
+        } else {
+            System.out.println("No predictions made yet.");
+        }
+    }
+    
+    private double calculateAverage(List<Integer> points) {
+        int sum = 0;
+        for (int value : points) {
+            sum += value;
+        }
+        return (double) sum / points.size();
     }
 }
 
@@ -112,65 +153,25 @@ class NewsObserver implements Observer {
     }
 }
 
-
-
-
-/*class AverageScoreDisplay implements Observer {
-	private float runRate;
-	private int predictedScore;
-
-	public void update(int runs, int wickets, float overs) {
-		this.runRate = (float) runs / overs;
-		this.predictedScore = (int) (this.runRate * 50);
-		display();
-	}
-
-	public void display() {
-		System.out.println(
-				"\nAverage Score Display: \n" + "Run Rate: " + runRate + "\nPredictedScore: " + predictedScore);
-	}
-}
-
-class CurrentScoreDisplay implements Observer {
-	private int runs, wickets;
-	private float overs;
-
-	public void update(int runs, int wickets, float overs) {
-		this.runs = runs;
-		this.wickets = wickets;
-		this.overs = overs;
-		display();
-	}
-
-	public void display() {
-		System.out
-				.println("\nCurrent Score Display:\n" + "Runs: " + runs + "\nWickets:" + wickets + "\nOvers: " + overs);
-	}
-}
-
-// Driver Class
 class Main {
 	public static void main(String args[]) {
-		// create objects for testing
-		AverageScoreDisplay averageScoreDisplay = new AverageScoreDisplay();
-		CurrentScoreDisplay currentScoreDisplay = new CurrentScoreDisplay();
+		PredictionObserver predictionObserver = new PredictionObserver();
+		GameStatsObserver gameStatsObserver = new GameStatsObserver();
+		NewsObserver newsObserver = new NewsObserver();
 
-		// pass the displays to Cricket data
-		CricketData cricketData = new CricketData();
+		Scanner scanner = new Scanner(System.in);
+		
+		while (true) {
+			   System.out.println("\nMenu:");
+	            System.out.println("1. Start a new game");
+	            System.out.println("2. Simulate 1 quarter");
+	            System.out.println("3. Print current score");
+	            System.out.println("4. Print current prediction");
+	            System.out.println("5. Print prediction stats");
+	            System.out.println("6. Print table of scores of all finished games");
+	            System.out.println("7. Generate a news piece title");
+	            System.out.println("8. Exit");
+		}
 
-		// register display elements
-		cricketData.registerObserver(averageScoreDisplay);
-		cricketData.registerObserver(currentScoreDisplay);
-
-		// in real app you would have some logic to
-		// call this function when data changes
-		cricketData.dataChanged();
-
-		// remove an observer
-		cricketData.unregisterObserver(averageScoreDisplay);
-
-		// now only currentScoreDisplay gets the
-		// notification
-		cricketData.dataChanged();
-	}*/
-
+	}
+}
