@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
@@ -61,8 +62,7 @@ class Scoring implements Subject {
 				String gameResult = createGameResultString();
 				finishedGames.put(currentGame, gameResult);
 
-				System.out.println(
-						"The game has ended. CurrentGame: " + currentGame + ", Games Size: " + finishedGames.size());
+				System.out.println("The current game has ended.");
 				gameOngoing = false;
 
 				notifyObservers();
@@ -102,8 +102,8 @@ class Scoring implements Subject {
 	}
 
 	private void printCurrentScore() {
-		System.out.println(
-				"Current Score after Quarter " + currentQuarter + ": Team A " + teamAScore + " - Team B " + teamBScore);
+		System.out.println("Current Score in Game " + currentGame + " during Quarter " + currentQuarter + ": Team A "
+				+ teamAScore + " - Team B " + teamBScore);
 	}
 
 	public int getTeamAScore() {
@@ -133,23 +133,44 @@ interface Observer {
 
 class PredictionObserver implements Observer {
 	private int correctPredictions;
+	private int totalPointError;
 	private int currentPrediction;
+	private int totalPredictions;
+	private Random random;
 
 	public PredictionObserver() {
 		correctPredictions = 0;
+		totalPointError = 0;
 		currentPrediction = 0;
+		totalPredictions = 0;
+		random = new Random();
 	}
 
 	@Override
 	public void update(int teamAScore, int teamBScore) {
-		int predictedFinalScore = teamAScore + teamBScore + 20;
-		int actualFinalScore = teamAScore + teamBScore;
+		int basePrediction = teamAScore + teamBScore;
 
-		currentPrediction = predictedFinalScore; // Current prediction
+		int randomPointError = generateRandomPointError();
 
-		if (predictedFinalScore == actualFinalScore) {
+		currentPrediction = basePrediction + randomPointError;
+
+		totalPointError += Math.abs(currentPrediction - (teamAScore + teamBScore));
+		totalPredictions++;
+
+		int predictionRange = 5;
+
+		if (Math.abs(currentPrediction - (teamAScore + teamBScore)) <= predictionRange) {
 			correctPredictions++;
 		}
+	}
+
+	public double getAveragePointError() {
+		return totalPredictions == 0 ? 0 : (double) totalPointError / totalPredictions;
+	}
+
+	private int generateRandomPointError() {
+		// Range from -20 and 20
+		return random.nextInt(41) - 20;
 	}
 
 	public int getCurrentPrediction() {
@@ -158,8 +179,8 @@ class PredictionObserver implements Observer {
 
 	public void displayPredictionStats() {
 		System.out.println("Prediction Stats:");
-		System.out.println("Current Prediction: " + currentPrediction);
-		System.out.println("Correct Final Results Predictions: " + correctPredictions);
+		System.out.println("Average Point Error Rate: " + getAveragePointError());
+		System.out.println("Correct Final Results Predictions within 5 Point Range: " + correctPredictions);
 	}
 }
 
@@ -189,9 +210,9 @@ class GameStatsObserver implements Observer {
 	private void calculateGameResults(Map<Integer, String> finishedGames) {
 		for (Map.Entry<Integer, String> entry : finishedGames.entrySet()) {
 			int gameId = entry.getKey();
-			int currentGame = 0; 
-			int teamAScore = 0; 
-			int teamBScore = 0; 
+			int currentGame = 0;
+			int teamAScore = 0;
+			int teamBScore = 0;
 
 			if (!completedGames.contains(gameId)) {
 				completedGames.add(gameId);
@@ -241,7 +262,7 @@ class NewsObserver implements Observer {
 			} else {
 				newsTitle = "Team B beat Team A by " + (difference) + " points in a tightly contested game";
 			}
-			
+
 		} else {
 			newsTitle = "The game between Team A and Team B ended in a tie";
 		}
@@ -278,8 +299,11 @@ class Main {
 			switch (choice) {
 			case 1:
 				if (scoring.isGameOngoing()) {
+					System.out.println();
 					System.out.println("A game is already ongoing. Cannot start a new game.");
 				} else {
+					System.out.println();
+					System.out.println("Starting a new game.");
 					scoring.registerObserver(predictionObserver);
 					scoring.registerObserver(gameStatsObserver);
 					scoring.registerObserver(newsObserver);
@@ -291,16 +315,18 @@ class Main {
 					System.out.println();
 					scoring.simulateGame();
 				} else if (!scoring.isGameOngoing()) {
+					System.out.println();
 					System.out.println("The game has already ended. Start a new game.");
 				} else {
+					System.out.println();
 					System.out.println("Start a new game first.");
 				}
 				break;
 			case 3:
 				if (scoring.isGameOngoing()) {
 					System.out.println();
-					System.out.println(
-							"Current Score: Team A " + scoring.getTeamAScore() + " - Team B " + scoring.getTeamBScore());
+					System.out.println("Current Score: Team A " + scoring.getTeamAScore() + " - Team B "
+							+ scoring.getTeamBScore());
 				} else {
 					System.out.println();
 					System.out.println("No game in progress. Start a new game first.");
@@ -309,20 +335,15 @@ class Main {
 			case 4:
 				if (scoring.isGameOngoing()) {
 					System.out.println();
-					System.out.println("Current Prediction: " + predictionObserver.getCurrentPrediction());
+					System.out.println("Predicted Total Score: " + predictionObserver.getCurrentPrediction());
 				} else {
 					System.out.println();
 					System.out.println("No game in progress. Start a new game first.");
 				}
 				break;
 			case 5:
-				if (scoring.isGameOngoing()) {
-					System.out.println();
-					predictionObserver.displayPredictionStats();
-				} else {
-					System.out.println();
-					System.out.println("No game in progress. Start a new game first.");
-				}
+				System.out.println();
+				predictionObserver.displayPredictionStats();
 				break;
 			case 6:
 				if (scoring.getFinishedGames().isEmpty()) {
