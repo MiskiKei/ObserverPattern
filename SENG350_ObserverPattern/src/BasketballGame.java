@@ -71,6 +71,28 @@ class PredictionObserver implements Observer {
     }
 }
 
+class GameStatsObserver implements Observer {
+    private int totalGames;
+    private int teamAWins;
+    private int teamBWins;
+
+    @Override
+    public void update(int teamAScore, int teamBScore) {
+        totalGames++;
+        if (teamAScore > teamBScore) {
+            teamAWins++;
+        } else {
+            teamBWins++;
+        }
+    }
+
+    public void displayStats() {
+        System.out.println("Total Games: " + totalGames);
+        System.out.println("Team A Wins: " + teamAWins);
+        System.out.println("Team B Wins: " + teamBWins);
+    }
+}
+
 
 /*class AverageScoreDisplay implements Observer {
 	private float runRate;
