@@ -58,6 +58,20 @@ interface Observer {
     void update(int teamAScore, int teamBScore);
 }
 
+class PredictionObserver implements Observer {
+    private int predictedFinalScore;
+
+    @Override
+    public void update(int teamAScore, int teamBScore) {
+        predictedFinalScore = teamAScore + teamBScore + 20; //Cumulative Scores + 20 
+    }
+
+    public void displayPrediction() {
+        System.out.println("Predicted Final Score: " + predictedFinalScore);
+    }
+}
+
+
 /*class AverageScoreDisplay implements Observer {
 	private float runRate;
 	private int predictedScore;
