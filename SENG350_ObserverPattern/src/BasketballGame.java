@@ -77,7 +77,7 @@ class Scoring implements Subject {
 	}
 
 	private String createGameResultString() {
-		return String.format("Game %d: TeamA %d - TeamB %d", currentGame, teamAScore, teamBScore);
+		return String.format("Game %d: Team A %d - Team B %d", currentGame, teamAScore, teamBScore);
 	}
 
 	public void startNewGame() {
@@ -103,7 +103,7 @@ class Scoring implements Subject {
 
 	private void printCurrentScore() {
 		System.out.println(
-				"Current Score after Quarter " + currentQuarter + ": TeamA " + teamAScore + " - TeamB " + teamBScore);
+				"Current Score after Quarter " + currentQuarter + ": Team A " + teamAScore + " - Team B " + teamBScore);
 	}
 
 	public int getTeamAScore() {
@@ -198,7 +198,7 @@ class GameStatsObserver implements Observer {
 
 				totalGames++;
 				String gameResult = entry.getValue();
-				Pattern pattern = Pattern.compile("Game (\\d+): TeamA (\\d+) - TeamB (\\d+)");
+				Pattern pattern = Pattern.compile("Game (\\d+): Team A (\\d+) - Team B (\\d+)");
 				Matcher matcher = pattern.matcher(gameResult);
 				if (matcher.find()) {
 					currentGame = Integer.parseInt(matcher.group(1));
@@ -228,11 +228,22 @@ class NewsObserver implements Observer {
 	@Override
 	public void update(int teamAScore, int teamBScore) {
 		if (teamAScore > teamBScore) {
-			newsTitle = "TeamA beat TeamB by " + (teamAScore - teamBScore) + " points";
+			int difference = teamAScore - teamBScore;
+			if (difference > 20) {
+				newsTitle = "Team A beat Team B by " + (difference) + " points in a landslide";
+			} else {
+				newsTitle = "Team A beat Team B by " + (difference) + " points in a tightly contested game";
+			}
 		} else if (teamAScore < teamBScore) {
-			newsTitle = "TeamB beat TeamA by " + (teamBScore - teamAScore) + " points";
+			int difference = teamBScore - teamAScore;
+			if (difference > 20) {
+				newsTitle = "Team B beat Team A by " + (difference) + " points in a landslide";
+			} else {
+				newsTitle = "Team B beat Team A by " + (difference) + " points in a tightly contested game";
+			}
+			
 		} else {
-			newsTitle = "The game between TeamA and TeamB ended in a tie";
+			newsTitle = "The game between Team A and Team B ended in a tie";
 		}
 	}
 
@@ -289,7 +300,7 @@ class Main {
 				if (scoring.isGameOngoing()) {
 					System.out.println();
 					System.out.println(
-							"Current Score: TeamA " + scoring.getTeamAScore() + " - TeamB " + scoring.getTeamBScore());
+							"Current Score: Team A " + scoring.getTeamAScore() + " - Team B " + scoring.getTeamBScore());
 				} else {
 					System.out.println();
 					System.out.println("No game in progress. Start a new game first.");
@@ -332,15 +343,18 @@ class Main {
 					System.out.println();
 					System.out.println("No finished games. Simulate a game first.");
 				} else {
+					System.out.println();
 					newsObserver.displayNews();
 				}
 				break;
 			case 8:
+				System.out.println();
 				System.out.println("Exiting the program. Goodbye!");
 				scanner.close();
 				System.exit(0);
 				break;
 			default:
+				System.out.println();
 				System.out.println("Invalid choice. Please enter a number between 1 and 8.");
 				break;
 
