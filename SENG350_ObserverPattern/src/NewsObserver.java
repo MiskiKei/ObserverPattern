@@ -1,29 +1,36 @@
 class NewsObserver implements Observer {
-	private String newsTitle;
+    private String newsTitle;
+    private Scoring scoring;
 
-	@Override
-	public void update(int teamAScore, int teamBScore) {
-		if (teamAScore > teamBScore) {
-			int difference = teamAScore - teamBScore;
-			if (difference > 20) {
-				newsTitle = "Team A beat Team B by " + (difference) + " points in a landslide";
-			} else {
-				newsTitle = "Team A beat Team B by " + (difference) + " points in a tightly contested game";
-			}
-		} else if (teamAScore < teamBScore) {
-			int difference = teamBScore - teamAScore;
-			if (difference > 20) {
-				newsTitle = "Team B beat Team A by " + (difference) + " points in a landslide";
-			} else {
-				newsTitle = "Team B beat Team A by " + (difference) + " points in a tightly contested game";
-			}
+    public NewsObserver(Scoring scoring) {
+        this.scoring = scoring;
+    }
 
-		} else {
-			newsTitle = "The game between Team A and Team B ended in a tie";
-		}
-	}
+    @Override
+    public void update(int teamAScore, int teamBScore) {
+        String teamAName = scoring.getTeamAName();
+        String teamBName = scoring.getTeamBName();
 
-	public void displayNews() {
-		System.out.println(newsTitle);
-	}
+        if (teamAScore > teamBScore) {
+            int difference = teamAScore - teamBScore;
+            if (difference > 20) {
+                newsTitle = teamAName + " beat " + teamBName + " by " + (difference) + " points in a landslide";
+            } else {
+                newsTitle = teamAName + " beat " + teamBName + " by " + (difference) + " points in a tightly contested game";
+            }
+        } else if (teamAScore < teamBScore) {
+            int difference = teamBScore - teamAScore;
+            if (difference > 20) {
+                newsTitle = teamBName + " beat " + teamAName + " by " + (difference) + " points in a landslide";
+            } else {
+                newsTitle = teamBName + " beat " + teamAName + " by " + (difference) + " points in a tightly contested game";
+            }
+        } else {
+            newsTitle = "The game between " + teamAName + " and " + teamBName + " ended in a tie";
+        }
+    }
+
+    public void displayNews() {
+        System.out.println(newsTitle);
+    }
 }
