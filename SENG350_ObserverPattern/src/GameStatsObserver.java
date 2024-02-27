@@ -1,3 +1,4 @@
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -10,6 +11,7 @@ class GameStatsObserver implements Observer {
     private int teamAWins;
     private int teamBWins;
     private Set<Integer> completedGames;
+    Map<String, Integer> teamWins = null;
 
     public GameStatsObserver(Scoring scoring) {
         this.scoring = scoring;
@@ -17,6 +19,8 @@ class GameStatsObserver implements Observer {
         teamAWins = 0;
         teamBWins = 0;
         completedGames = new HashSet<>();
+        teamWins = new HashMap<>();  
+        
     }
 
     @Override
@@ -35,6 +39,8 @@ class GameStatsObserver implements Observer {
             int teamBScore = 0;
             String teamAName = scoring.getTeamAName();
             String teamBName = scoring.getTeamBName();
+            
+   
 
             if (!completedGames.contains(gameId)) {
                 completedGames.add(gameId);
@@ -49,10 +55,21 @@ class GameStatsObserver implements Observer {
                     teamBScore = Integer.parseInt(matcher.group(3));
                 }
 
+                String winningTeam;
                 if (teamAScore > teamBScore) {
                     teamAWins++;
+                    winningTeam = teamAName;
                 } else {
                     teamBWins++;
+                    winningTeam = teamBName;
+                }
+
+
+                // Check if team name already exists in the win count map
+                if (teamWins.containsKey(winningTeam)) {
+                    teamWins.put(winningTeam, teamWins.get(winningTeam) + 1);
+                } else {
+                    teamWins.put(winningTeam, 1);
                 }
             }
         }
@@ -60,7 +77,8 @@ class GameStatsObserver implements Observer {
 
     public void displayStats() {
         System.out.println("Total Games: " + totalGames);
-        System.out.println(scoring.getTeamAName() + " Wins: " + teamAWins);
-        System.out.println(scoring.getTeamBName() + " Wins: " + teamBWins);
+        for (Map.Entry<String, Integer> entry : teamWins.entrySet()) {
+            System.out.println(entry.getKey() + " Wins: " + entry.getValue());
+        }
     }
 }
